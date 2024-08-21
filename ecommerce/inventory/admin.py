@@ -1,13 +1,32 @@
 from django.contrib import admin
-
-from . import models
-
-admin.site.register(models.Product)
-admin.site.register(models.Category)
+from .models import *
 
 
-class InventoryAdmin(admin.ModelAdmin):
-    list_display = ("product", "store_price")
+#
+# admin.site.register(Category)
+# admin.site.register(Attribute)
+# admin.site.register(AttributeValue)
+# admin.site.register(Image)
+# admin.site.register(Inventory)
+# admin.site.register(Product)
+# admin.site.register(StockControl)
 
 
-admin.site.register(models.ProductInventory, InventoryAdmin)
+class ProductImageInline(admin.TabularInline):
+    model = Image
+
+
+class StockControlInline(admin.TabularInline):
+    model = Attribute
+
+
+@admin.register(Inventory)
+class ProductInventoryAdmin(admin.ModelAdmin):
+    inlines = [ProductImageInline, StockControlInline]
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    prepopulated_fields = {
+        'slug': ('name',),
+    }

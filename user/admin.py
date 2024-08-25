@@ -1,23 +1,10 @@
 from django.contrib import admin
-from user.models import UserProfile
-from django.contrib.auth.models import User
-from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
+from user.models import UserProfile, User
+from django.contrib.auth.admin import UserAdmin
 
+fields = list(UserAdmin.fieldsets)
+fields[1] = ('Personal Info', {'fields': ('first_name', 'last_name', 'email', 'age', 'nickname')})
 
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
-    can_delete = False
+UserAdmin.fieldsets = tuple(fields)
 
-
-class UserAdmin(AuthUserAdmin):
-    def add_view(self, *args, **kwargs):
-        self.inlines = []
-        return super(UserAdmin, self).add_view(*args, **kwargs)
-
-    def change_view(self, *args, **kwargs):
-        self.inlines = [UserProfileInline, ]
-        return super(UserAdmin, self).change_view(*args, **kwargs)
-
-
-admin.site.unregister(User)
 admin.site.register(User, UserAdmin)

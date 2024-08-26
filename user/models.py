@@ -3,6 +3,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Case, Value, When
 
 
 class User(AbstractUser):
@@ -18,6 +19,50 @@ class PersonManagerInActive(models.Manager):
 class PersonManagerActive(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_active=True)
+
+
+class AgeCheckManager(models.Manager):
+    def student_age(self):
+        return self.annotate(
+            classification=Case(
+                When(age__gt=17, then=Value('Adult')),
+                default=Value('Child')
+            )
+        )
+
+
+class ActiveFilter(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(active=True)
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class Student(models.Model):
+    firstname = models.CharField(max_length=100)
+    age = models.IntegerField(default=0, blank=True, null=True)
+    course = models.ManyToManyField(Course, related_name='course')
+    active = models.BooleanField(default=True)
+
+    activefilter = ActiveFilter()
+    objects = AgeCheckManager()
+
+    def __str__(self):
+        return self.firstname
+
+    def age_check(self):
+        if self.age:
+            if self.age >= 18:
+                return True
+            else:
+                return False
+        else:
+            return False
 
 
 class Person(User):
